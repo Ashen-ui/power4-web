@@ -1,4 +1,4 @@
-package main
+package serveur
 
 import (
 	"fmt"
@@ -8,7 +8,7 @@ import (
 
 // REFERENCE: https://blog.logrocket.com/creating-a-web-server-with-golang
 // Lance un serveur web basique sur le port 8080 pour servir les fichiers statiques
-func main() {
+func serveur() {
 	fileServer := http.FileServer(http.Dir("./static"))
 	http.Handle("/", fileServer)
 
