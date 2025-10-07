@@ -1,22 +1,43 @@
 package serveur
 
 import (
+	"POWER4/src/modules"
 	"fmt"
+	"html/template"
 	"log"
 	"net/http"
+	"os"
+	"path/filepath"
 )
 
-// REFERENCE: https://blog.logrocket.com/creating-a-web-server-with-golang
-// Lance un serveur web basique sur le port 8080 pour servir les fichiers statiques
-func serveur() {
-	fileServer := http.FileServer(http.Dir("./static"))
-	http.Handle("/", fileServer)
+func indexHandler(w http.ResponseWriter, r *http.Request) {
+	execDir, err := os.Getwd()
+	if err != nil {
+		http.Error(w, "Erreur lors de la récupération du répertoire : "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+	tmplPath := filepath.Join(execDir, "templates", "index.html")
 
-	fmt.Printf("Starting server at port 8080\n")
+	tmpl, err := template.ParseFiles(tmplPath)
+	if err != nil {
+		http.Error(w, "Erreur de chargement du template : "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	plateau := modules.GetGame()
+
+	if err := tmpl.Execute(w, plateau); err != nil {
+		http.Error(w, "Erreur lors de l'exécution du template : "+err.Error(), http.StatusInternalServerError)
+	}
+}
+
+func Serveur() {
+	fs := http.FileServer(http.Dir("./static"))
+	http.Handle("/static/", http.StripPrefix("/static/", fs))
+	http.HandleFunc("/", indexHandler)
+
+	fmt.Println("Serveur démarré sur http://localhost:8080")
 	if err := http.ListenAndServe(":8080", nil); err != nil {
 		log.Fatal(err)
 	}
 }
-
-// Pour tester, aller sur http://localhost:8080 dans un navigateur
-// Pour arrêter le serveur, faire Ctrl+C dans le terminal
