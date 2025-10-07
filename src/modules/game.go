@@ -37,7 +37,77 @@ func PlayMove(col int) {
 	}
 }
 
-// GetGame retourne l'état actuel de la partie
+func Check_Win_Con() string {
+	//Check Horizontal
+	for i := 0; i < 6; i++ {
+		for j := 0; j < 4; j++ {
+			StartPt := CurrentGame.Grid[i][j]
+			if StartPt != "| - |" {
+				if StartPt == CurrentGame.Grid[i][j+1] &&
+					StartPt == CurrentGame.Grid[i][j+2] &&
+					StartPt == CurrentGame.Grid[i][j+3] {
+					return StartPt
+				}
+			}
+		}
+	}
+	//Check vertical
+	for i := 0; i < 3; i++ {
+		for j := 0; j < 7; j++ {
+			StartPt := CurrentGame.Grid[i][j]
+			if StartPt != "| - |" {
+				if StartPt == CurrentGame.Grid[i+1][j] &&
+					StartPt == CurrentGame.Grid[i+2][j] &&
+					StartPt == CurrentGame.Grid[i+3][j] {
+					return StartPt
+				}
+			}
+		}
+	}
+	//Check Diagonal top left to bottom right
+	for i := 0; i < 3; i++ {
+		for j := 0; j < 4; j++ {
+			StartPt := CurrentGame.Grid[i][j]
+			if StartPt != "| - |" {
+				if StartPt == CurrentGame.Grid[i+1][j+1] &&
+					StartPt == CurrentGame.Grid[i+2][j+2] &&
+					StartPt == CurrentGame.Grid[i+3][j+3] {
+					return StartPt
+				}
+			}
+		}
+	}
+	//Check Diagonal bottom left to top right
+	for i := 3; i < 6; i++ {
+		for j := 0; j < 4; j++ {
+			StartPt := CurrentGame.Grid[i][j]
+			if StartPt != "| - |" {
+				if StartPt == CurrentGame.Grid[i-1][j+1] &&
+					StartPt == CurrentGame.Grid[i-2][j+2] &&
+					StartPt == CurrentGame.Grid[i-3][j+3] {
+					return StartPt
+				}
+			}
+		}
+	}
+	return "| - |"
+}
+
+func Winner() string {
+	return Check_Win_Con()
+}
+
+func Reset() {
+	InitGame()
+}
+
+func CheckDraw() string {
+	if IsFull(CurrentGame.Grid) && Check_Win_Con() == "| - |" {
+		return "draw"
+	}
+	return "| - |"
+}
+
 func GetGame() Game {
 	return CurrentGame
 }
