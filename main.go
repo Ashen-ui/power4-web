@@ -1,7 +1,7 @@
 package main
 
-// "fmt"
+import "POWER4/src/serveur"
 
-func MAIN() {
-	game(2)
+func main() {
+	serveur.Serveur()
 }
