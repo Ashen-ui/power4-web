@@ -1,7 +1,7 @@
 package serveur
 
 import (
-	"POWER4/src/modules"
+	module "POWER4/src/modules"
 	"fmt"
 	"html/template"
 	"log"
@@ -24,7 +24,7 @@ func indexHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	plateau := modules.GetGame()
+	plateau := module.GetGame()
 
 	if err := tmpl.Execute(w, plateau); err != nil {
 		http.Error(w, "Erreur lors de l'exécution du template : "+err.Error(), http.StatusInternalServerError)

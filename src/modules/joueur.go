@@ -1,4 +1,4 @@
-package joueur
+package module
 
 type Joueur struct {
 	Nom   string
