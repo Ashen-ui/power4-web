@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <link rel="icon" type="image/png" href="/static/image/logo.png">
+  <link rel="stylesheet" href="/static/css/style.css">
+  <title>Puissance 4</title>
+  
+</head>
+
+<body>
+
+<h1>Puissance 4</h1>
+
+<div class="current-player">Au tour de :
+  {{if eq .Current "X"}}
+    <img src="/static/image/jeton_rouge.png" class="player-indicator" alt="Rouge">
+  {{else if eq .Current "O"}}
+    <img src="/static/image/jeton_bleu.png" class="player-indicator" alt="Bleu">
+  {{else}}
+    <span>—</span>
+  {{end}}
+</div>
+
+
+<div class="plateau">
+  {{range $colIndex, $col := .Colonnes}}
+    <div class="colonne">
+      <form class="column-form" method="post" action="/play">
+        <input type="hidden" name="col" value="{{$colIndex}}">
+        <button class="play-btn" type="submit">↓</button>
+      </form>
+      {{range $cell := $col}}
+        <div class="cellule">
+          {{if eq $cell.Valeur "R"}}
+            <img src="/static/image/jeton_rouge.png" alt="R">
+          {{else if eq $cell.Valeur "B"}}
+            <img src="/static/image/jeton_bleu.png" alt="B">
+          {{end}}
+        </div>
+      {{end}}
+    </div>
+  {{end}}
+</div>
+
+</body>
+</html>
