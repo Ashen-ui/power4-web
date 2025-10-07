@@ -1,5 +1,13 @@
 package module
 
+type Cell struct {
+	Valeur string // "", "R" (rouge), "B" (bleu)
+}
+
+type Plateau struct {
+	Colonnes [][]Cell // 7 colonnes de 6 cellules chacune
+}
+
 type Game struct {
 	Grid [6][7]string // 6 lignes, 7 colonnes
 	Turn string       // "X" ou "O"

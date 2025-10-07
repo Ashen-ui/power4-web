@@ -1,66 +1,60 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-
   <meta charset="UTF-8">
   <link rel="icon" type="image/png" href="/static/image/logo.png">
   <title>Puissance 4</title>
 
   <style>
     body {
-        background-color: black;
-        color: white;
-        font-family: Arial, sans-serif;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
+      background-color: black;
+      color: white;
+      font-family: Arial, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
     }
 
     h1 {
-        margin-top: 10px;
+      margin-top: 10px;
     }
 
-    /* Logo */
     .logo {
-        width: 100px;
-        height: auto;
-        margin-top: 20px;
+      width: 100px;
+      height: auto;
+      margin-top: 20px;
     }
 
-    /* Plateau en colonnes */
     .plateau {
-        display: flex;
-        gap: 5px;
-        background-color: blue;
-        padding: 10px;
-        border-radius: 15px;
-        margin-top: 20px;
+      display: flex;
+      gap: 5px;
+      background-color: blue;
+      padding: 10px;
+      border-radius: 15px;
+      margin-top: 20px;
     }
 
-    /* Chaque colonne */
     .colonne {
-        display: flex;
-        flex-direction: column-reverse; /* bas = première cellule */
-        gap: 5px;
+      display: flex;
+      flex-direction: column-reverse;
+      gap: 5px;
     }
 
-    /* Chaque cellule ronde */
     .cellule {
-        width: 60px;
-        height: 60px;
-        border-radius: 50%;
-        background-color: white;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        overflow: hidden;
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      background-color: white;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      overflow: hidden;
     }
 
-    /* Jetons */
     .cellule img {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
     }
   </style>
 </head>
@@ -70,75 +64,19 @@
 <h1>Puissance 4</h1>
 
 <div class="plateau">
-    <!-- Colonne 1 -->
+  {{range .Colonnes}}
     <div class="colonne">
-        <div class="cellule"></div>
-        <div class="cellule"></div>
-        <div class="cellule"></div>
-        <div class="cellule"></div>
-        <div class="cellule"><img src="/static/image/jeton_rouge.png" alt="X"></div>
-        <div class="cellule"><img src="/static/image/jeton_bleu.png" alt="O"></div>
+      {{range .}}
+        <div class="cellule">
+          {{if eq .Valeur "R"}}
+            <img src="/static/image/jeton_rouge.png" alt="R">
+          {{else if eq .Valeur "B"}}
+            <img src="/static/image/jeton_bleu.png" alt="B">
+          {{end}}
+        </div>
+      {{end}}
     </div>
-
-    <!-- Colonne 2 -->
-    <div class="colonne">
-        <div class="cellule"></div>
-        <div class="cellule"></div>
-        <div class="cellule"></div>
-        <div class="cellule"></div>
-        <div class="cellule"></div>
-        <div class="cellule"><img src="/static/image/jeton_rouge.png" alt="X"></div>
-    </div>
-
-    <!-- Colonne 3 -->
-    <div class="colonne">
-        <div class="cellule"></div>
-        <div class="cellule"></div>
-        <div class="cellule"></div>
-        <div class="cellule"></div>
-        <div class="cellule"></div>
-        <div class="cellule"></div>
-    </div>
-
-    <!-- Colonne 4 -->
-    <div class="colonne">
-        <div class="cellule"></div>
-        <div class="cellule"></div>
-        <div class="cellule"></div>
-        <div class="cellule"></div>
-        <div class="cellule"></div>
-        <div class="cellule"></div>
-    </div>
-
-    <!-- Colonne 5 -->
-    <div class="colonne">
-        <div class="cellule"></div>
-        <div class="cellule"></div>
-        <div class="cellule"></div>
-        <div class="cellule"></div>
-        <div class="cellule"></div>
-        <div class="cellule"></div>
-    </div>
-
-    <!-- Colonne 6 -->
-    <div class="colonne">
-        <div class="cellule"></div>
-        <div class="cellule"></div>
-        <div class="cellule"></div>
-        <div class="cellule"></div>
-        <div class="cellule"></div>
-        <div class="cellule"></div>
-    </div>
-
-    <!-- Colonne 7 -->
-    <div class="colonne">
-        <div class="cellule"></div>
-        <div class="cellule"></div>
-        <div class="cellule"></div>
-        <div class="cellule"></div>
-        <div class="cellule"></div>
-        <div class="cellule"></div>
-    </div>
+  {{end}}
 </div>
 
 </body>
