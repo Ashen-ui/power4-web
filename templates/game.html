@@ -12,13 +12,24 @@
 
 <h1>Puissance 4</h1>
 
-<div class="current-player">Au tour de :
-  {{if eq .Current "X"}}
-    <img src="/static/image/jeton_rouge.png" class="player-indicator" alt="Rouge">
-  {{else if eq .Current "O"}}
-    <img src="/static/image/jeton_bleu.png" class="player-indicator" alt="Bleu">
+<div class="scores" style="display:flex;gap:20px;align-items:center;">
+  <div class="score">Rouge: <span class="score-value">{{.WinsX}}</span></div>
+  <div class="score">Bleu: <span class="score-value">{{.WinsO}}</span></div>
+</div>
+
+<div class="current-player">
+  {{if .Winner}}
+    <div class="game-over">Le gagnant est : <img src="{{if eq .Winner "X"}}/static/image/jeton_rouge.png{{else}}/static/image/jeton_bleu.png{{end}}" class="player-indicator" alt="winner"></div>
+    <div style="margin-top:10px;"><a class="btn btn-primary" href="/game?new=1">Recommencer</a></div>
   {{else}}
-    <span>—</span>
+    Au tour de :
+    {{if eq .Current "X"}}
+      <img src="/static/image/jeton_rouge.png" class="player-indicator" alt="Rouge">
+    {{else if eq .Current "O"}}
+      <img src="/static/image/jeton_bleu.png" class="player-indicator" alt="Bleu">
+    {{else}}
+      <span>—</span>
+    {{end}}
   {{end}}
 </div>
 
@@ -26,10 +37,12 @@
 <div class="plateau">
   {{range $colIndex, $col := .Colonnes}}
     <div class="colonne">
+      {{if not $.Winner}}
       <form class="column-form" method="post" action="/play">
         <input type="hidden" name="col" value="{{$colIndex}}">
         <button class="play-btn" type="submit">↓</button>
       </form>
+      {{end}}
       {{range $cell := $col}}
         <div class="cellule">
           {{if eq $cell.Valeur "R"}}

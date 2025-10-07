@@ -10,6 +10,18 @@ import (
 	"path/filepath"
 )
 
+// Cell is a view-model cell used by templates
+type Cell struct{ Valeur string }
+
+// GameView is the view model passed to game.html
+type GameView struct {
+	Colonnes [][]Cell
+	Current  string
+	Winner   string
+	WinsX    int
+	WinsO    int
+}
+
 func indexHandler(w http.ResponseWriter, r *http.Request) {
 	execDir, err := os.Getwd()
 	if err != nil {
@@ -51,14 +63,9 @@ func gameHandler(w http.ResponseWriter, r *http.Request) {
 
 	plateau := module.GetGame()
 
-	type Cell struct{ Valeur string }
-	// GameView contains Colonnes and Current (who's turn: "X" or "O")
-	type GameView struct {
-		Colonnes [][]Cell
-		Current  string
-	}
-
+	// initialize view using package-level GameView/Cell
 	view := GameView{Colonnes: make([][]Cell, 7)}
+
 	for col := 0; col < 7; col++ {
 		colCells := make([]Cell, 0, 6)
 		for row := 0; row < 6; row++ {
@@ -83,6 +90,18 @@ func gameHandler(w http.ResponseWriter, r *http.Request) {
 	} else if module.GetGame().Turn == "| O |" {
 		view.Current = "O"
 	}
+
+	// Check for a winner
+	if winner, ok := module.CheckWin(module.GetGame().Grid); ok {
+		view.Winner = winner
+	} else {
+		view.Winner = ""
+	}
+
+	// populate win counters
+	wx, wo := module.GetWinCounts()
+	view.WinsX = wx
+	view.WinsO = wo
 
 	if err := tmpl.Execute(w, view); err != nil {
 		http.Error(w, "Erreur lors de l'exécution du template : "+err.Error(), http.StatusInternalServerError)
@@ -114,6 +133,19 @@ func playHandler(w http.ResponseWriter, r *http.Request) {
 
 	// Play move
 	module.PlayMove(col)
+
+	// After playing, check for a winner
+	if winner, ok := module.CheckWin(module.GetGame().Grid); ok {
+		// increment counters
+		if winner == "X" {
+			module.IncrementWin("X")
+		} else if winner == "O" {
+			module.IncrementWin("O")
+		}
+		// Redirect to /game to display the winner
+		http.Redirect(w, r, "/game", http.StatusSeeOther)
+		return
+	}
 
 	// Redirect back to game view
 	http.Redirect(w, r, "/game", http.StatusSeeOther)
