@@ -137,9 +137,10 @@ func playHandler(w http.ResponseWriter, r *http.Request) {
 	// After playing, check for a winner
 	if winner, ok := module.CheckWin(module.GetGame().Grid); ok {
 		// increment counters
-		if winner == "X" {
+		switch winner {
+		case "X":
 			module.IncrementWin("X")
-		} else if winner == "O" {
+		case "O":
 			module.IncrementWin("O")
 		}
 		// Redirect to /game to display the winner

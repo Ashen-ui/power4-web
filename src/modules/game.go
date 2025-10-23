@@ -6,11 +6,12 @@ type Game struct {
 	Turn    string
 	Joueur1 Joueur
 	Joueur2 Joueur
+	WinsX   int
+	WinsO   int
 }
 
 var CurrentGame Game
-var WinsX int
-var WinsO int
+
 
 // InitGame initialise une nouvelle partie avec un plateau vide
 func InitGame() {
@@ -101,16 +102,17 @@ func Winner() string {
 
 // IncrementWin increments the win counter for the given player "X" or "O".
 func IncrementWin(player string) {
-	if player == "X" {
-		WinsX++
-	} else if player == "O" {
-		WinsO++
+	switch player {
+	case "X":
+		CurrentGame.WinsX++
+	case "O":
+		CurrentGame.WinsO++
 	}
 }
 
 // GetWinCounts retourne les compteurs de victoires (winsX, winsO)
 func GetWinCounts() (int, int) {
-	return WinsX, WinsO
+	return CurrentGame.WinsX, CurrentGame.WinsO
 }
 
 func Reset() {
