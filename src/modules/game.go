@@ -19,6 +19,7 @@ func InitGame() {
 	CurrentGame.Turn = "| X |"
 }
 
+
 // PlayMove place un jeton dans la colonne spécifiée
 func PlayMove(col int) {
 	// Parcourt la grille de bas en haut (dernière ligne vers première ligne)

@@ -9,13 +9,90 @@
 </head>
 
 <body>
+  <div class="ligne">
+    <h1>Puissance
+      <img src="/static/image/logo.png" class="logo" alt="logo"> 
+    </h1>
+    
+  </div>
+  <div class="ligne">
+    <div class="menu">
+    
+      <!-- Séléction du "mode de jeu" -->
+      <h2>Choix du mode de jeu</h2>
+      <a href="/game?new=1" class="btn-play">parti classique</a>
+      <a href="/persogame?new=1" class="btn-play">parti avec les paramètres personalisé</a>
+    </div>
+    <div class="menu">
+      <!--Séléction des paramètres personnalisés -->
+      <h2>Paramètres de la partie</h2>
 
-<h1>Puissance 4</h1>
+      <!-- selecteur de ligne-->
+      <label for="rows">Nombre de lignes :</label>  
+      <div class="input-selector">
+        <div>
+          <button type="submit" form="decrement_rows">-</button>
+          <form id="decrement_rows" action="/" method="POST" style="display:none">
+            <input type="hidden" name="action" value="decrement_rows">
+          </form>
+        </div>
 
-<div class="menu">
-  <img src="/static/image/logo.png" class="logo" alt="logo">
-  <a href="/game?new=1" class="btn-play">Jouer</a>
-</div>
+        <span class="value">{{.Rows}}</span>
 
+        <div>
+          <button type="submit" form="increment_rows">+</button>
+          <form id="increment_rows" action="/" method="POST" style="display:none">
+            <input type="hidden" name="action" value="increment_rows">
+          </form>
+        </div>
+      </div>
+
+      <!-- selecteur de colonnes-->
+      <label for="cols">Nombre de colonnes :</label>
+      <div class="input-selector">
+      
+        <div>
+          <button type="submit" form="decrement_cols">-</button>
+          <form id="decrement_cols" action="/" method="POST" style="display:none">
+            <input type="hidden" name="action" value="decrement_cols">
+          </form>
+        </div>
+
+        <span class="value">{{.Cols}}</span>
+
+        <div>
+          <button type="submit" form="increment_cols">+</button>
+          <form id="increment_cols" action="/" method="POST" style="display:none">
+            <input type="hidden" name="action" value="increment_cols">
+          </form>
+        </div>
+      </div>
+      <!-- selecteur de condition de win-->
+      <label for="condition">Condition de victoire :</label>
+      <div class="input-selector">
+        <div>
+          <button type="submit" form="decrement_condition">-</button>
+          <form id="decrement_condition" action="/" method="POST" style="display:none">
+            <input type="hidden" name="action" value="decrement_condition">
+          </form>
+        </div>
+
+        <span class="value">{{.Condition}}</span>
+
+        <div>
+          <button type="submit" form="increment_condition">+</button>
+          <form id="increment_condition" action="/" method="POST" style="display:none">
+            <input type="hidden" name="action" value="increment_condition">
+          </form>
+        </div>
+      </div>
+
+      <label for="mode">Mode de jeu :</label>
+      <select id="mode" name="mode">
+        <option value="1v1">Joueur vs Joueur</option>
+        <option value="1vAI">Joueur vs IA actuellement indisponible</option>
+      </select><br><br>
+    </div>
+  </div>
 </body>
 </html>

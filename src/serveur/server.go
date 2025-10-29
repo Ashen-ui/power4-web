@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"sync"
 )
 
 // Cell is a view-model cell used by templates
@@ -22,23 +23,80 @@ type GameView struct {
 	WinsO    int
 }
 
+// permet de créer des variables globales pour les paramètres personnalisés pour faire des parties persionalisé
+var (
+	value     int
+	rows      = 6
+	cols      = 7
+	condition = 4
+	mu        sync.Mutex
+)
+
 func indexHandler(w http.ResponseWriter, r *http.Request) {
+	mu.Lock()
+	defer mu.Unlock()
+
+	if r.Method == http.MethodPost {
+		action := r.FormValue("action")
+		switch action {
+		case "increment":
+			value++
+		case "decrement":
+			value--
+		case "increment_rows":
+			if rows < 20 {
+				rows++
+			}
+		case "decrement_rows":
+			if rows > 4 {
+				rows--
+			}
+		case "increment_cols":
+			if cols < 20 {
+				cols++
+			}
+		case "decrement_cols":
+			if cols > 4 {
+				cols--
+			}
+		case "increment_condition":
+			if condition < 7 {
+				condition++
+			}
+		case "decrement_condition":
+			if condition > 4 {
+				condition--
+			}
+		}
+	}
+
 	execDir, err := os.Getwd()
 	if err != nil {
-		http.Error(w, "Erreur lors de la récupération du répertoire : "+err.Error(), http.StatusInternalServerError)
+		http.Error(w, "Erreur répertoire : "+err.Error(), http.StatusInternalServerError)
 		return
 	}
 	tmplPath := filepath.Join(execDir, "templates", "index.html")
 
 	tmpl, err := template.ParseFiles(tmplPath)
 	if err != nil {
-		http.Error(w, "Erreur de chargement du template : "+err.Error(), http.StatusInternalServerError)
+		http.Error(w, "Erreur template : "+err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	// index.html doesn't need a view model anymore (it's a simple menu)
-	if err := tmpl.Execute(w, nil); err != nil {
-		http.Error(w, "Erreur lors de l'exécution du template : "+err.Error(), http.StatusInternalServerError)
+	data := struct {
+		Value     int
+		Rows      int
+		Cols      int
+		Condition int
+	}{
+		Value:     value,
+		Rows:      rows,
+		Cols:      cols,
+		Condition: condition,
+	}
+
+	if err := tmpl.Execute(w, data); err != nil {
+		http.Error(w, "Erreur exécution : "+err.Error(), http.StatusInternalServerError)
 	}
 }
 
@@ -159,8 +217,8 @@ func Serveur() {
 	http.HandleFunc("/game", gameHandler)
 	http.HandleFunc("/play", playHandler)
 
-	fmt.Println("Serveur démarré sur http://localhost:8080")
-	if err := http.ListenAndServe(":8080", nil); err != nil {
+	fmt.Println("Serveur démarré sur http://localhost:8081")
+	if err := http.ListenAndServe(":8081", nil); err != nil {
 		log.Fatal(err)
 	}
 }
