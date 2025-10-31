@@ -6,27 +6,11 @@ import (
 	"html/template"
 	"log"
 	"net/http"
-	"os"
 	"path/filepath"
 	"sync"
 )
 
-// Cell is a view-model cell used by templates
-type Cell struct{ Valeur string }
-
-// GameView is the view model passed to game.html
-type GameView struct {
-	Colonnes [][]Cell
-	Current  string
-	Winner   string
-	WinsX    int
-	WinsO    int
-}
-
-// variables globales pour les paramètres personnalisés
-var (
-	mu sync.Mutex
-)
+var mu sync.Mutex
 
 func indexHandler(w http.ResponseWriter, r *http.Request) {
 	mu.Lock()
@@ -56,22 +40,29 @@ func indexHandler(w http.ResponseWriter, r *http.Request) {
 				module.GameData.Condition++
 			}
 		case "decrement_condition":
-			if module.GameData.Condition > 4 {
+			if module.GameData.Condition > 3 {
 				module.GameData.Condition--
 			}
-		case "set_classic":
+		case "partie_classique":
 			module.GameData.Rows = 6
 			module.GameData.Cols = 7
 			module.GameData.Condition = 4
+			module.InitGameCustom(module.GameData.Rows, module.GameData.Cols, module.GameData.Condition)
+			http.Redirect(w, r, "/game?new=1&classic=1", http.StatusSeeOther)
+			return
+		case "partie_perso":
+			module.InitGameCustom(module.GameData.Rows, module.GameData.Cols, module.GameData.Condition)
+			http.Redirect(w, r, "/game?new=1", http.StatusSeeOther)
+			return
 		}
 		http.Redirect(w, r, "/", http.StatusSeeOther)
 		return
 	}
 
-	execDir, _ := os.Getwd()
-	tmplPath := filepath.Join(execDir, "templates", "index.html")
+	tmplPath := filepath.Join("templates", "index.html") // relatif à la racine
 	tmpl, err := template.ParseFiles(tmplPath)
 	if err != nil {
+		log.Println("Erreur template index :", err)
 		http.Error(w, "Erreur template : "+err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -82,90 +73,97 @@ func gameHandler(w http.ResponseWriter, r *http.Request) {
 	mu.Lock()
 	defer mu.Unlock()
 
-	execDir, _ := os.Getwd()
-
-	// Nouvelle partie demandée
 	if r.URL.Query().Get("new") == "1" {
 		if r.URL.Query().Get("classic") == "1" {
-			// Valeurs classiques fixes
-			module.InitGameCustom(6, 7, 4)
+			// Nouvelle partie classique : initialise la grille et le tour mais garde les scores
+			rows, cols, cond := 6, 7, 4
+			winsX, winsO := module.CurrentGame.WinsX, module.CurrentGame.WinsO
+			module.InitGameCustom(rows, cols, cond)
+			module.CurrentGame.WinsX = winsX
+			module.CurrentGame.WinsO = winsO
 			module.GameData.Rows = 6
 			module.GameData.Cols = 7
 			module.GameData.Condition = 4
 		} else {
-			// Partie personnalisée
+			// Partie personnalisée : garde les scores
+			winsX, winsO := module.CurrentGame.WinsX, module.CurrentGame.WinsO
 			module.InitGameCustom(module.GameData.Rows, module.GameData.Cols, module.GameData.Condition)
+			module.CurrentGame.WinsX = winsX
+			module.CurrentGame.WinsO = winsO
 		}
 	}
 
-	tmplPath := filepath.Join(execDir, "templates", "game.html")
+	tmplPath := filepath.Join("templates", "game.html")
 	tmpl, err := template.ParseFiles(tmplPath)
 	if err != nil {
+		log.Println("Erreur template game :", err)
 		http.Error(w, "Erreur template : "+err.Error(), http.StatusInternalServerError)
 		return
 	}
-
-	plateau := module.GetGame()
-	view := GameView{Colonnes: make([][]Cell, module.GameData.Cols)}
-
-	for col := 0; col < module.GameData.Cols; col++ {
-		colCells := make([]Cell, module.GameData.Rows)
-		for row := 0; row < module.GameData.Rows; row++ {
-			val := ""
-			if row < len(plateau.Grid) && col < len(plateau.Grid[row]) {
-				switch plateau.Grid[row][col] {
-				case "| X |":
-					val = "R"
-				case "| O |":
-					val = "B"
-				}
-			}
-			colCells[row] = Cell{Valeur: val}
-		}
-		view.Colonnes[col] = colCells
-	}
-
-	if plateau.Turn == "| X |" {
-		view.Current = "X"
-	} else if plateau.Turn == "| O |" {
-		view.Current = "O"
-	}
-
-	if module.Check_Win_Con() == true {
-		winner := ""
-		if plateau.Turn == "| X |" {
-			winner = "O"
-		} else if plateau.Turn == "| O |" {
-			winner = "X"
-		}
-		view.Winner = winner
-	}
-
-	wx, wo := module.GetWinCounts()
-	view.WinsX = wx
-	view.WinsO = wo
-
-	tmpl.Execute(w, view)
+	tmpl.Execute(w, module.CurrentGame)
 }
 
 func playHandler(w http.ResponseWriter, r *http.Request) {
+	mu.Lock()
+	defer mu.Unlock()
+
+	// Sécurité si la grille n'est pas initialisée
+	if len(module.CurrentGame.Grid) == 0 {
+		module.InitGameCustom(module.GameData.Rows, module.GameData.Cols, module.GameData.Condition)
+	}
+
 	if r.Method != http.MethodPost {
 		http.Error(w, "Méthode non autorisée", http.StatusMethodNotAllowed)
 		return
 	}
 
 	r.ParseForm()
-	colStr := r.FormValue("col")
-	var col int
-	fmt.Sscanf(colStr, "%d", &col)
-	module.PlayMove(col)
+	action := r.FormValue("action")
 
-	http.Redirect(w, r, "/game", http.StatusSeeOther)
+	switch action {
+	case "menu":
+		// Retour au menu
+		module.CurrentGame = module.Game{}
+		http.Redirect(w, r, "/", http.StatusSeeOther)
+		return
+	case "reset":
+		// Réinitialise la partie mais garde le score
+		module.InitGameCustom(module.GameData.Rows, module.GameData.Cols, module.GameData.Condition)
+		module.CurrentGame.Winner = ""
+		http.Redirect(w, r, "/game", http.StatusSeeOther)
+		return
+	case "reset_scores":
+		// Réinitialise la partie et les scores
+		module.CurrentGame.WinsX = 0
+		module.CurrentGame.WinsO = 0
+		module.InitGameCustom(module.GameData.Rows, module.GameData.Cols, module.GameData.Condition)
+		module.CurrentGame.Winner = ""
+		http.Redirect(w, r, "/game", http.StatusSeeOther)
+		return
+	default:
+		var col int
+		fmt.Sscanf(r.FormValue("col"), "%d", &col)
+		module.PlayMove(col)
+
+		if module.Check_Win_Con() {
+			if module.CurrentGame.Turn == "| X |" {
+				module.CurrentGame.Winner = "O"
+				module.CurrentGame.WinsO++
+			} else {
+				module.CurrentGame.Winner = "X"
+				module.CurrentGame.WinsX++
+			}
+		}
+		http.Redirect(w, r, "/game", http.StatusSeeOther)
+	}
 }
 
 func Serveur() {
+	// Fichiers statiques
 	fs := http.FileServer(http.Dir("./static"))
 	http.Handle("/static/", http.StripPrefix("/static/", fs))
+
+	// Handlers
 	http.HandleFunc("/", indexHandler)
 	http.HandleFunc("/game", gameHandler)
 	http.HandleFunc("/play", playHandler)

@@ -8,69 +8,59 @@
 </head>
 <body>
   <div class="ligne">
-    <h1>Puissance
-      <img src="/static/image/logo.png" class="logo" alt="logo"> 
-    </h1>
+    <h1>Puissance <img src="/static/image/logo.png" class="logo" alt="logo"></h1>
   </div>
-
   <div class="ligne">
     <div class="menu">
       <h2>Choix du mode de jeu</h2>
-      <form method="POST" action="/">
-        <input type="hidden" name="action" value="set_classic">
-        <a href="/game?new=1&classic=1" class="btn-play">partie classique</a>
-
+      <form method="post" action="/">
+        <input type="hidden" name="action" value="partie_classique">
+        <button class="btn-play" type="submit">Partie classique</button>
       </form>
-
-      <a href="/game?new=1" class="btn-play">parti avec les paramètres personnalisés</a>
+      <form method="post" action="/">
+        <input type="hidden" name="action" value="partie_perso">
+        <button class="btn-play" type="submit">Partie personnalisée</button>
+      </form>
     </div>
-
     <div class="menu">
       <h2>Paramètres de la partie</h2>
-
-      <label for="rows">Nombre de lignes :</label>  
+      <label>Nombre de lignes :</label>
       <div class="input-selector">
-        <form id="decrement_rows" action="/" method="POST" style="display:none">
+        <form method="post" action="/" style="display:inline">
           <input type="hidden" name="action" value="decrement_rows">
+          <button type="submit">-</button>
         </form>
-        <button type="submit" form="decrement_rows">-</button>
-
         <span class="value">{{.Rows}}</span>
-
-        <form id="increment_rows" action="/" method="POST" style="display:none">
+        <form method="post" action="/" style="display:inline">
           <input type="hidden" name="action" value="increment_rows">
+          <button type="submit">+</button>
         </form>
-        <button type="submit" form="increment_rows">+</button>
       </div>
 
-      <label for="cols">Nombre de colonnes :</label>
+      <label>Nombre de colonnes :</label>
       <div class="input-selector">
-        <form id="decrement_cols" action="/" method="POST" style="display:none">
+        <form method="post" action="/" style="display:inline">
           <input type="hidden" name="action" value="decrement_cols">
+          <button type="submit">-</button>
         </form>
-        <button type="submit" form="decrement_cols">-</button>
-
         <span class="value">{{.Cols}}</span>
-
-        <form id="increment_cols" action="/" method="POST" style="display:none">
+        <form method="post" action="/" style="display:inline">
           <input type="hidden" name="action" value="increment_cols">
+          <button type="submit">+</button>
         </form>
-        <button type="submit" form="increment_cols">+</button>
       </div>
 
-      <label for="condition">Condition de victoire :</label>
+      <label>Condition de victoire :</label>
       <div class="input-selector">
-        <form id="decrement_condition" action="/" method="POST" style="display:none">
+        <form method="post" action="/" style="display:inline">
           <input type="hidden" name="action" value="decrement_condition">
+          <button type="submit">-</button>
         </form>
-        <button type="submit" form="decrement_condition">-</button>
-
         <span class="value">{{.Condition}}</span>
-
-        <form id="increment_condition" action="/" method="POST" style="display:none">
+        <form method="post" action="/" style="display:inline">
           <input type="hidden" name="action" value="increment_condition">
+          <button type="submit">+</button>
         </form>
-        <button type="submit" form="increment_condition">+</button>
       </div>
     </div>
   </div>

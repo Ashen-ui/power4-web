@@ -5,26 +5,28 @@ type Game struct {
 	Grid      [][]string
 	Turn      string
 	Condition int
-	Joueur1   Joueur
-	Joueur2   Joueur
+	Winner    string
+	WinsX     int
+	WinsO     int
 }
 
-var GameData = struct {
+type GameParams struct {
 	Rows      int
 	Cols      int
 	Condition int
-}{
+}
+
+// Variables globales pour l'état du jeu
+var CurrentGame Game
+var GameData = GameParams{
 	Rows:      6,
 	Cols:      7,
 	Condition: 4,
 }
 
-var CurrentGame Game
-var WinsX int
-var WinsO int
-
+// InitGameCustom initialise une nouvelle partie
 func InitGameCustom(rows, cols, condition int) {
-	var grid = make([][]string, rows)
+	grid := make([][]string, rows)
 	for i := 0; i < rows; i++ {
 		grid[i] = make([]string, cols)
 		for j := 0; j < cols; j++ {
@@ -36,125 +38,141 @@ func InitGameCustom(rows, cols, condition int) {
 		Turn:      "| X |",
 		Condition: condition,
 		Grid:      grid,
-	}
-
-	// Copie manuelle de la grille dynamique dans la grille fixe 6x7 si besoin
-	for i := 0; i < rows && i < len(CurrentGame.Grid); i++ {
-		for j := 0; j < cols && j < len(CurrentGame.Grid[i]); j++ {
-			CurrentGame.Grid[i][j] = grid[i][j]
-		}
+		WinsX:     CurrentGame.WinsX,
+		WinsO:     CurrentGame.WinsO,
+		Winner:    "",
 	}
 }
 
-// PlayMove place un jeton dans la colonne spécifiée
+// PlayMove place un jeton dans la colonne donnée
 func PlayMove(col int) {
-	// Parcourt la grille de bas en haut (dernière ligne vers première ligne)
 	for row := len(CurrentGame.Grid) - 1; row >= 0; row-- {
-		// Vérifie si la case est vide
 		if CurrentGame.Grid[row][col] == "| - |" {
-			// Place le jeton du joueur actuel dans la case
 			CurrentGame.Grid[row][col] = CurrentGame.Turn
-			// Change le tour : si c'était X, passe à O, sinon passe à X
 			if CurrentGame.Turn == "| X |" {
 				CurrentGame.Turn = "| O |"
 			} else {
 				CurrentGame.Turn = "| X |"
 			}
-			// Sort de la fonction une fois le jeton placé
 			return
 		}
 	}
 }
 
+// Check_Win_Con vérifie si un joueur a gagné
 func Check_Win_Con() bool {
-	//Check Horizontal
-	for i := 0; i < GameData.Rows; i++ {
-		for j := 0; j < GameData.Cols-3; j++ {
-			StartPt := CurrentGame.Grid[i][j]
-			if StartPt != "| - |" {
-				if StartPt == CurrentGame.Grid[i][j+1] &&
-					StartPt == CurrentGame.Grid[i][j+2] &&
-					StartPt == CurrentGame.Grid[i][j+3] {
+	rows := len(CurrentGame.Grid)
+	cols := len(CurrentGame.Grid[0])
+	c := CurrentGame.Condition
+
+	// Horizontal
+	for i := 0; i < rows; i++ {
+		for j := 0; j <= cols-c; j++ {
+			start := CurrentGame.Grid[i][j]
+			if start != "| - |" {
+				win := true
+				for k := 1; k < c; k++ {
+					if CurrentGame.Grid[i][j+k] != start {
+						win = false
+						break
+					}
+				}
+				if win {
 					return true
 				}
 			}
 		}
 	}
-	//Check vertical
-	for i := 0; i < GameData.Rows-3; i++ {
-		for j := 0; j < GameData.Cols; j++ {
-			StartPt := CurrentGame.Grid[i][j]
-			if StartPt != "| - |" {
-				if StartPt == CurrentGame.Grid[i+1][j] &&
-					StartPt == CurrentGame.Grid[i+2][j] &&
-					StartPt == CurrentGame.Grid[i+3][j] {
+
+	// Vertical
+	for i := 0; i <= rows-c; i++ {
+		for j := 0; j < cols; j++ {
+			start := CurrentGame.Grid[i][j]
+			if start != "| - |" {
+				win := true
+				for k := 1; k < c; k++ {
+					if CurrentGame.Grid[i+k][j] != start {
+						win = false
+						break
+					}
+				}
+				if win {
 					return true
 				}
 			}
 		}
 	}
-	//Check Diagonal top left to bottom right
-	for i := 0; i < GameData.Rows-3; i++ {
-		for j := 0; j < GameData.Cols-3; j++ {
-			StartPt := CurrentGame.Grid[i][j]
-			if StartPt != "| - |" {
-				if StartPt == CurrentGame.Grid[i+1][j+1] &&
-					StartPt == CurrentGame.Grid[i+2][j+2] &&
-					StartPt == CurrentGame.Grid[i+3][j+3] {
+
+	// Diagonal top-left -> bottom-right
+	for i := 0; i <= rows-c; i++ {
+		for j := 0; j <= cols-c; j++ {
+			start := CurrentGame.Grid[i][j]
+			if start != "| - |" {
+				win := true
+				for k := 1; k < c; k++ {
+					if CurrentGame.Grid[i+k][j+k] != start {
+						win = false
+						break
+					}
+				}
+				if win {
 					return true
 				}
 			}
 		}
 	}
-	//Check Diagonal bottom left to top right
-	for i := 3; i < GameData.Rows; i++ {
-		for j := 0; j < GameData.Cols-3; j++ {
-			StartPt := CurrentGame.Grid[i][j]
-			if StartPt != "| - |" {
-				if StartPt == CurrentGame.Grid[i-1][j+1] &&
-					StartPt == CurrentGame.Grid[i-2][j+2] &&
-					StartPt == CurrentGame.Grid[i-3][j+3] {
+
+	// Diagonal bottom-left -> top-right
+	for i := c - 1; i < rows; i++ {
+		for j := 0; j <= cols-c; j++ {
+			start := CurrentGame.Grid[i][j]
+			if start != "| - |" {
+				win := true
+				for k := 1; k < c; k++ {
+					if CurrentGame.Grid[i-k][j+k] != start {
+						win = false
+						break
+					}
+				}
+				if win {
 					return true
 				}
 			}
 		}
 	}
+
 	return false
 }
 
-func Winner() bool {
-	if Check_Win_Con() {
-		if CurrentGame.Turn == "| X |" {
-			IncrementWin("O")
-		} else if CurrentGame.Turn == "| O |" {
-			IncrementWin("X")
+// CheckDraw vérifie si le plateau est plein et pas de gagnant
+func CheckDraw() bool {
+	for _, row := range CurrentGame.Grid {
+		for _, cell := range row {
+			if cell == "| - |" {
+				return false
+			}
 		}
 	}
-	return Check_Win_Con()
+	return !Check_Win_Con()
 }
 
-// IncrementWin increments the win counter for the given player "X" or "O".
+// IncrementWin incrémente le score d'un joueur
 func IncrementWin(player string) {
 	switch player {
 	case "X":
-		WinsX++
+		CurrentGame.WinsX++
 	case "O":
-		WinsO++
+		CurrentGame.WinsO++
 	}
 }
 
-// GetWinCounts retourne les compteurs de victoires (winsX, winsO)
+// GetWinCounts retourne les scores
 func GetWinCounts() (int, int) {
-	return WinsX, WinsO
+	return CurrentGame.WinsX, CurrentGame.WinsO
 }
 
-func CheckDraw() bool {
-	if IsFull(CurrentGame.Grid) && !Check_Win_Con() {
-		return true
-	}
-	return false
-}
-
-func GetGame() Game {
-	return CurrentGame
+// ResetScores remet les scores à zéro
+func ResetScores() {
+	CurrentGame.WinsX = 0
+	CurrentGame.WinsO = 0
 }
