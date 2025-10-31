@@ -62,7 +62,7 @@ func PlayMove(col int) {
 	}
 }
 
-func Check_Win_Con() string {
+func Check_Win_Con() bool {
 	//Check Horizontal
 	for i := 0; i < 6; i++ {
 		for j := 0; j < 4; j++ {
@@ -71,7 +71,7 @@ func Check_Win_Con() string {
 				if StartPt == CurrentGame.Grid[i][j+1] &&
 					StartPt == CurrentGame.Grid[i][j+2] &&
 					StartPt == CurrentGame.Grid[i][j+3] {
-					return StartPt
+					return true
 				}
 			}
 		}
@@ -84,7 +84,7 @@ func Check_Win_Con() string {
 				if StartPt == CurrentGame.Grid[i+1][j] &&
 					StartPt == CurrentGame.Grid[i+2][j] &&
 					StartPt == CurrentGame.Grid[i+3][j] {
-					return StartPt
+					return true
 				}
 			}
 		}
@@ -97,7 +97,7 @@ func Check_Win_Con() string {
 				if StartPt == CurrentGame.Grid[i+1][j+1] &&
 					StartPt == CurrentGame.Grid[i+2][j+2] &&
 					StartPt == CurrentGame.Grid[i+3][j+3] {
-					return StartPt
+					return true
 				}
 			}
 		}
@@ -110,15 +110,15 @@ func Check_Win_Con() string {
 				if StartPt == CurrentGame.Grid[i-1][j+1] &&
 					StartPt == CurrentGame.Grid[i-2][j+2] &&
 					StartPt == CurrentGame.Grid[i-3][j+3] {
-					return StartPt
+					return true
 				}
 			}
 		}
 	}
-	return "| - |"
+	return false
 }
 
-func Winner() string {
+func Winner() bool {
 	return Check_Win_Con()
 }
 
@@ -141,11 +141,11 @@ func Reset() {
 	InitGame()
 }
 
-func CheckDraw() string {
-	if IsFull(CurrentGame.Grid) && Check_Win_Con() == "| - |" {
-		return "draw"
+func CheckDraw() bool {
+	if IsFull(CurrentGame.Grid) && !Check_Win_Con() {
+		return true
 	}
-	return "| - |"
+	return false
 }
 
 func GetGame() Game {

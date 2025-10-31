@@ -141,7 +141,13 @@ func gameHandler(w http.ResponseWriter, r *http.Request) {
 		view.Current = "O"
 	}
 
-	if winner, ok := module.CheckWin(plateau.Grid); ok {
+	if module.Check_Win_Con() == true {
+		winner := ""
+		if plateau.Turn == "| X |" {
+			winner = "O"
+		} else if plateau.Turn == "| O |" {
+			winner = "X"
+		}
 		view.Winner = winner
 	}
 
@@ -163,17 +169,6 @@ func playHandler(w http.ResponseWriter, r *http.Request) {
 	var col int
 	fmt.Sscanf(colStr, "%d", &col)
 	module.PlayMove(col)
-
-	if winner, ok := module.CheckWin(module.GetGame().Grid); ok {
-		switch winner {
-		case "X":
-			module.IncrementWin("X")
-		case "O":
-			module.IncrementWin("O")
-		}
-		http.Redirect(w, r, "/game", http.StatusSeeOther)
-		return
-	}
 
 	http.Redirect(w, r, "/game", http.StatusSeeOther)
 }
