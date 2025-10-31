@@ -5,9 +5,7 @@
   <link rel="icon" type="image/png" href="/static/image/logo.png">
   <link rel="stylesheet" href="/static/css/style.css">
   <title>Puissance 4</title>
-  
 </head>
-
 <body>
 
 <h1>Puissance 4</h1>
@@ -19,8 +17,14 @@
 
 <div class="current-player">
   {{if .Winner}}
-    <div class="game-over">Le gagnant est : <img src="{{if eq .Winner "X"}}/static/image/jeton_rouge.png{{else}}/static/image/jeton_bleu.png{{end}}" class="player-indicator" alt="winner"></div>
-    <div style="margin-top:10px;"><a class="btn btn-primary" href="/game?new=1">Recommencer</a></div>
+    <div class="game-over">
+      Le gagnant est :
+      <img src="{{if eq .Winner "X"}}/static/image/jeton_rouge.png{{else}}/static/image/jeton_bleu.png{{end}}" 
+           class="player-indicator" alt="winner">
+    </div>
+    <div style="margin-top:10px;">
+      <a class="btn btn-primary" href="/game?new=1">Recommencer</a>
+    </div>
   {{else}}
     Au tour de :
     {{if eq .Current "X"}}
@@ -32,7 +36,6 @@
     {{end}}
   {{end}}
 </div>
-
 
 <div class="plateau">
   {{range $colIndex, $col := .Colonnes}}

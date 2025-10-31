@@ -23,13 +23,19 @@ type GameView struct {
 	WinsO    int
 }
 
-// permet de créer des variables globales pour les paramètres personnalisés pour faire des parties persionalisé
+// variables globales pour les paramètres personnalisés
 var (
-	value     int
-	rows      = 6
-	cols      = 7
-	condition = 4
-	mu        sync.Mutex
+	mu sync.Mutex
+
+	gameData = struct {
+		Rows      int
+		Cols      int
+		Condition int
+	}{
+		Rows:      6,
+		Cols:      7,
+		Condition: 4,
+	}
 )
 
 func indexHandler(w http.ResponseWriter, r *http.Request) {
@@ -39,174 +45,136 @@ func indexHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method == http.MethodPost {
 		action := r.FormValue("action")
 		switch action {
-		case "increment":
-			value++
-		case "decrement":
-			value--
 		case "increment_rows":
-			if rows < 20 {
-				rows++
+			if gameData.Rows < 20 {
+				gameData.Rows++
 			}
 		case "decrement_rows":
-			if rows > 4 {
-				rows--
+			if gameData.Rows > 4 {
+				gameData.Rows--
 			}
 		case "increment_cols":
-			if cols < 20 {
-				cols++
+			if gameData.Cols < 20 {
+				gameData.Cols++
 			}
 		case "decrement_cols":
-			if cols > 4 {
-				cols--
+			if gameData.Cols > 4 {
+				gameData.Cols--
 			}
 		case "increment_condition":
-			if condition < 7 {
-				condition++
+			if gameData.Condition < 7 {
+				gameData.Condition++
 			}
 		case "decrement_condition":
-			if condition > 4 {
-				condition--
+			if gameData.Condition > 4 {
+				gameData.Condition--
 			}
+		case "set_classic":
+			gameData.Rows = 6
+			gameData.Cols = 7
+			gameData.Condition = 4
+		}
+		http.Redirect(w, r, "/", http.StatusSeeOther)
+		return
+	}
+
+	execDir, _ := os.Getwd()
+	tmplPath := filepath.Join(execDir, "templates", "index.html")
+	tmpl, err := template.ParseFiles(tmplPath)
+	if err != nil {
+		http.Error(w, "Erreur template : "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+	tmpl.Execute(w, gameData)
+}
+
+func gameHandler(w http.ResponseWriter, r *http.Request) {
+	mu.Lock()
+	defer mu.Unlock()
+
+	execDir, _ := os.Getwd()
+
+	// Nouvelle partie demandée
+	if r.URL.Query().Get("new") == "1" {
+		if r.URL.Query().Get("classic") == "1" {
+			// Valeurs classiques fixes
+			module.InitGameCustom(6, 7, 4)
+			gameData.Rows = 6
+			gameData.Cols = 7
+			gameData.Condition = 4
+		} else {
+			// Partie personnalisée
+			module.InitGameCustom(gameData.Rows, gameData.Cols, gameData.Condition)
 		}
 	}
 
-	execDir, err := os.Getwd()
-	if err != nil {
-		http.Error(w, "Erreur répertoire : "+err.Error(), http.StatusInternalServerError)
-		return
-	}
-	tmplPath := filepath.Join(execDir, "templates", "index.html")
-
+	tmplPath := filepath.Join(execDir, "templates", "game.html")
 	tmpl, err := template.ParseFiles(tmplPath)
 	if err != nil {
 		http.Error(w, "Erreur template : "+err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	data := struct {
-		Value     int
-		Rows      int
-		Cols      int
-		Condition int
-	}{
-		Value:     value,
-		Rows:      rows,
-		Cols:      cols,
-		Condition: condition,
-	}
-
-	if err := tmpl.Execute(w, data); err != nil {
-		http.Error(w, "Erreur exécution : "+err.Error(), http.StatusInternalServerError)
-	}
-}
-
-func gameHandler(w http.ResponseWriter, r *http.Request) {
-	execDir, err := os.Getwd()
-	if err != nil {
-		http.Error(w, "Erreur lors de la récupération du répertoire : "+err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	// Initialize a new game only if requested (?new=1)
-	if r.URL.Query().Get("new") == "1" {
-		module.InitGame()
-	}
-
-	tmplPath := filepath.Join(execDir, "templates", "game.html")
-	tmpl, err := template.ParseFiles(tmplPath)
-	if err != nil {
-		http.Error(w, "Erreur de chargement du template : "+err.Error(), http.StatusInternalServerError)
-		return
-	}
-
 	plateau := module.GetGame()
+	view := GameView{Colonnes: make([][]Cell, gameData.Cols)}
 
-	// initialize view using package-level GameView/Cell
-	view := GameView{Colonnes: make([][]Cell, 7)}
-
-	for col := 0; col < 7; col++ {
-		colCells := make([]Cell, 0, 6)
-		for row := 0; row < 6; row++ {
+	for col := 0; col < gameData.Cols; col++ {
+		colCells := make([]Cell, gameData.Rows)
+		for row := 0; row < gameData.Rows; row++ {
 			val := ""
-			switch plateau.Grid[row][col] {
-			case "| X |":
-				val = "R"
-			case "| O |":
-				val = "B"
-			default:
-				val = ""
+			if row < len(plateau.Grid) && col < len(plateau.Grid[row]) {
+				switch plateau.Grid[row][col] {
+				case "| X |":
+					val = "R"
+				case "| O |":
+					val = "B"
+				}
 			}
-			colCells = append(colCells, Cell{Valeur: val})
+			colCells[row] = Cell{Valeur: val}
 		}
 		view.Colonnes[col] = colCells
 	}
 
-	// Current player mapping: internal "| X |" -> "X" and "| O |" -> "O"
-	view.Current = ""
-	if module.GetGame().Turn == "| X |" {
+	if plateau.Turn == "| X |" {
 		view.Current = "X"
-	} else if module.GetGame().Turn == "| O |" {
+	} else if plateau.Turn == "| O |" {
 		view.Current = "O"
 	}
 
-	// Check for a winner
-	if winner, ok := module.CheckWin(module.GetGame().Grid); ok {
+	if winner, ok := module.CheckWin(plateau.Grid); ok {
 		view.Winner = winner
-	} else {
-		view.Winner = ""
 	}
 
-	// populate win counters
 	wx, wo := module.GetWinCounts()
 	view.WinsX = wx
 	view.WinsO = wo
 
-	if err := tmpl.Execute(w, view); err != nil {
-		http.Error(w, "Erreur lors de l'exécution du template : "+err.Error(), http.StatusInternalServerError)
-	}
+	tmpl.Execute(w, view)
 }
 
-// playHandler accepts a POST with form value "col" (0-6) and plays the move, then redirects back to /game
 func playHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		http.Error(w, "Méthode non autorisée", http.StatusMethodNotAllowed)
 		return
 	}
-	if err := r.ParseForm(); err != nil {
-		http.Error(w, "Données invalides", http.StatusBadRequest)
-		return
-	}
-	colStr := r.FormValue("col")
-	if colStr == "" {
-		http.Error(w, "Colonne manquante", http.StatusBadRequest)
-		return
-	}
-	// parse integer
-	var col int
-	_, err := fmt.Sscanf(colStr, "%d", &col)
-	if err != nil || col < 0 || col > 6 {
-		http.Error(w, "Colonne invalide", http.StatusBadRequest)
-		return
-	}
 
-	// Play move
+	r.ParseForm()
+	colStr := r.FormValue("col")
+	var col int
+	fmt.Sscanf(colStr, "%d", &col)
 	module.PlayMove(col)
 
-	// After playing, check for a winner
 	if winner, ok := module.CheckWin(module.GetGame().Grid); ok {
-		// increment counters
 		switch winner {
 		case "X":
 			module.IncrementWin("X")
 		case "O":
 			module.IncrementWin("O")
 		}
-		// Redirect to /game to display the winner
 		http.Redirect(w, r, "/game", http.StatusSeeOther)
 		return
 	}
 
-	// Redirect back to game view
 	http.Redirect(w, r, "/game", http.StatusSeeOther)
 }
 
@@ -218,7 +186,5 @@ func Serveur() {
 	http.HandleFunc("/play", playHandler)
 
 	fmt.Println("Serveur démarré sur http://localhost:8081")
-	if err := http.ListenAndServe(":8081", nil); err != nil {
-		log.Fatal(err)
-	}
+	log.Fatal(http.ListenAndServe(":8081", nil))
 }

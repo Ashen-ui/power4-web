@@ -2,10 +2,11 @@ package module
 
 // Game représente l'état d'une partie de Puissance 4
 type Game struct {
-	Grid    [6][7]string
-	Turn    string
-	Joueur1 Joueur
-	Joueur2 Joueur
+	Grid      [6][7]string
+	Turn      string
+	Condition int
+	Joueur1   Joueur
+	Joueur2   Joueur
 }
 
 var CurrentGame Game
@@ -19,6 +20,27 @@ func InitGame() {
 	CurrentGame.Turn = "| X |"
 }
 
+func InitGameCustom(rows, cols, condition int) {
+	var grid = make([][]string, rows)
+	for i := 0; i < rows; i++ {
+		grid[i] = make([]string, cols)
+		for j := 0; j < cols; j++ {
+			grid[i][j] = "| - |"
+		}
+	}
+
+	CurrentGame = Game{
+		Turn:      "| X |",
+		Condition: condition,
+	}
+
+	// Copie manuelle de la grille dynamique dans la grille fixe 6x7 si besoin
+	for i := 0; i < rows && i < len(CurrentGame.Grid); i++ {
+		for j := 0; j < cols && j < len(CurrentGame.Grid[i]); j++ {
+			CurrentGame.Grid[i][j] = grid[i][j]
+		}
+	}
+}
 
 // PlayMove place un jeton dans la colonne spécifiée
 func PlayMove(col int) {
