@@ -1,17 +1,17 @@
 package module
 
-func InitPlateau() [6][7]string {
-	var board [6][7]string
-	for i := 0; i < 6; i++ {
-		for j := 0; j < 7; j++ {
+func InitPlateau() [][]string {
+	var board [][]string
+	for i := 0; i < GameData.Rows; i++ {
+		for j := 0; j < GameData.Cols; j++ {
 			board[i][j] = "| - |"
 		}
 	}
 	return board
 }
 
-func IsFull(board [6][7]string) bool {
-	for j := 0; j < 7; j++ {
+func IsFull(board [][]string) bool {
+	for j := 0; j < GameData.Cols; j++ {
 		if board[0][j] == "| - |" {
 			return false
 		}
@@ -19,11 +19,10 @@ func IsFull(board [6][7]string) bool {
 	return true
 }
 
-func IsColFull(board [6][7]string, col int) bool {
+func IsColFull(board [][]string, col int) bool {
 	return board[0][col] != "| - |"
 }
 
-func GetSymbol(board [6][7]string, row, col int) string {
+func GetSymbol(board [][]string, row, col int) string {
 	return board[row][col]
 }
-

@@ -2,23 +2,26 @@ package module
 
 // Game représente l'état d'une partie de Puissance 4
 type Game struct {
-	Grid      [6][7]string
+	Grid      [][]string
 	Turn      string
 	Condition int
 	Joueur1   Joueur
 	Joueur2   Joueur
 }
 
+var GameData = struct {
+	Rows      int
+	Cols      int
+	Condition int
+}{
+	Rows:      6,
+	Cols:      7,
+	Condition: 4,
+}
+
 var CurrentGame Game
 var WinsX int
 var WinsO int
-
-// InitGame initialise une nouvelle partie avec un plateau vide
-func InitGame() {
-	CurrentGame = Game{}
-	CurrentGame.Grid = InitPlateau()
-	CurrentGame.Turn = "| X |"
-}
 
 func InitGameCustom(rows, cols, condition int) {
 	var grid = make([][]string, rows)
@@ -32,6 +35,7 @@ func InitGameCustom(rows, cols, condition int) {
 	CurrentGame = Game{
 		Turn:      "| X |",
 		Condition: condition,
+		Grid:      grid,
 	}
 
 	// Copie manuelle de la grille dynamique dans la grille fixe 6x7 si besoin
@@ -64,8 +68,8 @@ func PlayMove(col int) {
 
 func Check_Win_Con() bool {
 	//Check Horizontal
-	for i := 0; i < 6; i++ {
-		for j := 0; j < 4; j++ {
+	for i := 0; i < GameData.Rows; i++ {
+		for j := 0; j < GameData.Cols-3; j++ {
 			StartPt := CurrentGame.Grid[i][j]
 			if StartPt != "| - |" {
 				if StartPt == CurrentGame.Grid[i][j+1] &&
@@ -77,8 +81,8 @@ func Check_Win_Con() bool {
 		}
 	}
 	//Check vertical
-	for i := 0; i < 3; i++ {
-		for j := 0; j < 7; j++ {
+	for i := 0; i < GameData.Rows-3; i++ {
+		for j := 0; j < GameData.Cols; j++ {
 			StartPt := CurrentGame.Grid[i][j]
 			if StartPt != "| - |" {
 				if StartPt == CurrentGame.Grid[i+1][j] &&
@@ -90,8 +94,8 @@ func Check_Win_Con() bool {
 		}
 	}
 	//Check Diagonal top left to bottom right
-	for i := 0; i < 3; i++ {
-		for j := 0; j < 4; j++ {
+	for i := 0; i < GameData.Rows-3; i++ {
+		for j := 0; j < GameData.Cols-3; j++ {
 			StartPt := CurrentGame.Grid[i][j]
 			if StartPt != "| - |" {
 				if StartPt == CurrentGame.Grid[i+1][j+1] &&
@@ -103,8 +107,8 @@ func Check_Win_Con() bool {
 		}
 	}
 	//Check Diagonal bottom left to top right
-	for i := 3; i < 6; i++ {
-		for j := 0; j < 4; j++ {
+	for i := 3; i < GameData.Rows; i++ {
+		for j := 0; j < GameData.Cols-3; j++ {
 			StartPt := CurrentGame.Grid[i][j]
 			if StartPt != "| - |" {
 				if StartPt == CurrentGame.Grid[i-1][j+1] &&
@@ -119,6 +123,13 @@ func Check_Win_Con() bool {
 }
 
 func Winner() bool {
+	if Check_Win_Con() {
+		if CurrentGame.Turn == "| X |" {
+			IncrementWin("O")
+		} else if CurrentGame.Turn == "| O |" {
+			IncrementWin("X")
+		}
+	}
 	return Check_Win_Con()
 }
 
@@ -135,10 +146,6 @@ func IncrementWin(player string) {
 // GetWinCounts retourne les compteurs de victoires (winsX, winsO)
 func GetWinCounts() (int, int) {
 	return WinsX, WinsO
-}
-
-func Reset() {
-	InitGame()
 }
 
 func CheckDraw() bool {

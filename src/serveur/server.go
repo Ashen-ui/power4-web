@@ -26,16 +26,6 @@ type GameView struct {
 // variables globales pour les paramètres personnalisés
 var (
 	mu sync.Mutex
-
-	gameData = struct {
-		Rows      int
-		Cols      int
-		Condition int
-	}{
-		Rows:      6,
-		Cols:      7,
-		Condition: 4,
-	}
 )
 
 func indexHandler(w http.ResponseWriter, r *http.Request) {
@@ -46,33 +36,33 @@ func indexHandler(w http.ResponseWriter, r *http.Request) {
 		action := r.FormValue("action")
 		switch action {
 		case "increment_rows":
-			if gameData.Rows < 20 {
-				gameData.Rows++
+			if module.GameData.Rows < 20 {
+				module.GameData.Rows++
 			}
 		case "decrement_rows":
-			if gameData.Rows > 4 {
-				gameData.Rows--
+			if module.GameData.Rows > 4 {
+				module.GameData.Rows--
 			}
 		case "increment_cols":
-			if gameData.Cols < 20 {
-				gameData.Cols++
+			if module.GameData.Cols < 20 {
+				module.GameData.Cols++
 			}
 		case "decrement_cols":
-			if gameData.Cols > 4 {
-				gameData.Cols--
+			if module.GameData.Cols > 4 {
+				module.GameData.Cols--
 			}
 		case "increment_condition":
-			if gameData.Condition < 7 {
-				gameData.Condition++
+			if module.GameData.Condition < 7 {
+				module.GameData.Condition++
 			}
 		case "decrement_condition":
-			if gameData.Condition > 4 {
-				gameData.Condition--
+			if module.GameData.Condition > 4 {
+				module.GameData.Condition--
 			}
 		case "set_classic":
-			gameData.Rows = 6
-			gameData.Cols = 7
-			gameData.Condition = 4
+			module.GameData.Rows = 6
+			module.GameData.Cols = 7
+			module.GameData.Condition = 4
 		}
 		http.Redirect(w, r, "/", http.StatusSeeOther)
 		return
@@ -85,7 +75,7 @@ func indexHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Erreur template : "+err.Error(), http.StatusInternalServerError)
 		return
 	}
-	tmpl.Execute(w, gameData)
+	tmpl.Execute(w, module.GameData)
 }
 
 func gameHandler(w http.ResponseWriter, r *http.Request) {
@@ -99,12 +89,12 @@ func gameHandler(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Query().Get("classic") == "1" {
 			// Valeurs classiques fixes
 			module.InitGameCustom(6, 7, 4)
-			gameData.Rows = 6
-			gameData.Cols = 7
-			gameData.Condition = 4
+			module.GameData.Rows = 6
+			module.GameData.Cols = 7
+			module.GameData.Condition = 4
 		} else {
 			// Partie personnalisée
-			module.InitGameCustom(gameData.Rows, gameData.Cols, gameData.Condition)
+			module.InitGameCustom(module.GameData.Rows, module.GameData.Cols, module.GameData.Condition)
 		}
 	}
 
@@ -116,11 +106,11 @@ func gameHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	plateau := module.GetGame()
-	view := GameView{Colonnes: make([][]Cell, gameData.Cols)}
+	view := GameView{Colonnes: make([][]Cell, module.GameData.Cols)}
 
-	for col := 0; col < gameData.Cols; col++ {
-		colCells := make([]Cell, gameData.Rows)
-		for row := 0; row < gameData.Rows; row++ {
+	for col := 0; col < module.GameData.Cols; col++ {
+		colCells := make([]Cell, module.GameData.Rows)
+		for row := 0; row < module.GameData.Rows; row++ {
 			val := ""
 			if row < len(plateau.Grid) && col < len(plateau.Grid[row]) {
 				switch plateau.Grid[row][col] {
