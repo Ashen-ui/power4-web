@@ -28,16 +28,22 @@ func indexHandler(w http.ResponseWriter, r *http.Request) {
 				module.GameData.Rows--
 			}
 		case "increment_cols":
-			if module.GameData.Cols < 20 {
+			if module.GameData.Cols < 20 && module.GameData.Cols < module.GameData.Condition {
 				module.GameData.Cols++
 			}
 		case "decrement_cols":
-			if module.GameData.Cols > 4 {
+			if module.GameData.Cols > 4 && module.GameData.Cols > module.GameData.Condition {
 				module.GameData.Cols--
 			}
 		case "increment_condition":
 			if module.GameData.Condition < 7 {
 				module.GameData.Condition++
+				if module.GameData.Condition > module.GameData.Cols {
+					module.GameData.Cols = module.GameData.Condition
+				}
+				if module.GameData.Condition > module.GameData.Rows {
+					module.GameData.Rows = module.GameData.Condition
+				}
 			}
 		case "decrement_condition":
 			if module.GameData.Condition > 3 {

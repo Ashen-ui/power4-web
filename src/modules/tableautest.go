@@ -2,6 +2,10 @@ package module
 
 func InitPlateau() [][]string {
 	var board [][]string
+	board = make([][]string, GameData.Rows)
+	for i := 0; i < GameData.Rows; i++ {
+		board[i] = make([]string, GameData.Cols)
+	}
 	for i := 0; i < GameData.Rows; i++ {
 		for j := 0; j < GameData.Cols; j++ {
 			board[i][j] = "| - |"
